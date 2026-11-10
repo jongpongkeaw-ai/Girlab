@@ -24,6 +24,13 @@
 - Git binary: `%LOCALAPPDATA%\Programs\Git\cmd\git.exe` (ไม่อยู่ใน PATH)
 - branch `feat/bjt-ce-bias`; ห้ามแก้ `electrical.py` และ `test_electrical.py`
 - ทุก commit ต้องรันเทสเขียวก่อน
+- UI ภาษาอังกฤษ, Bootstrap 5.3.3 CSS vendored ที่ `static/vendor/bootstrap.min.css`,
+  ไม่ใช้ JS และต้องทำงานได้โดยไม่ต่ออินเทอร์เน็ต
+- Panel ids: `input-panel`, `circuit-panel`, `results-panel`
+- ข้อความสถานะ: active → `Active region approximation OK`;
+  saturation → `Saturation region — linear model is not valid (VCE ≤ 0.2 V)`;
+  cutoff → `Cutoff region — base current is zero or negative`
+- แถบล่าง: `Week 2 Goal: Analyze and verify the DC operating point of a voltage-divider biased common-emitter amplifier.`
 
 ## Review Focus
 
@@ -276,12 +283,14 @@ $git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
 
 ---
 
-### Task 3: Flask skeleton, form, validation errors
+### Task 3: Flask skeleton, 3-column layout, form, validation errors
 
 **Files:**
 - Create: `app.py`
 - Create: `templates/index.html`
+- Create: `templates/_circuit.svg`
 - Create: `static/style.css`
+- Create: `static/vendor/bootstrap.min.css` (vendored)
 - Create: `tests/test_app.py`
 
 **Interfaces:**
@@ -289,7 +298,18 @@ $git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
 - Produces: `app` (Flask instance), `DEFAULTS: dict[str, str]`
 - Produces routes: `GET /` และ `POST /` (ทั้งคู่ render `index.html`)
 
-- [ ] **Step 1: เขียนเทสที่ยังไม่ผ่าน**
+- [ ] **Step 1: Vendor Bootstrap CSS**
+
+```powershell
+New-Item -ItemType Directory -Force static\vendor | Out-Null
+curl.exe -L -o static\vendor\bootstrap.min.css https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css
+(Get-Item static\vendor\bootstrap.min.css).Length
+```
+
+Expected: ตัวเลข > 100000 ถ้าดาวน์โหลดไม่ได้ ให้หยุดและแจ้งผู้ใช้
+(ห้ามใช้ CDN link เพราะเดโมต้องทำงานออฟไลน์)
+
+- [ ] **Step 2: เขียนเทสที่ยังไม่ผ่าน**
 
 ```python
 import pytest
@@ -316,6 +336,21 @@ def test_get_index_shows_form(client):
         assert f'name="{field}"' in body
 
 
+def test_layout_has_three_panels_and_goal_bar(client):
+    body = client.get("/").get_data(as_text=True)
+    for panel in ("input-panel", "circuit-panel", "results-panel"):
+        assert f'id="{panel}"' in body
+    assert "<svg" in body
+    assert "/static/vendor/bootstrap.min.css" in body
+    assert "Week 2 Goal" in body
+
+
+def test_bootstrap_css_is_served_locally(client):
+    response = client.get("/static/vendor/bootstrap.min.css")
+    assert response.status_code == 200
+    assert len(response.get_data()) > 100000
+
+
 def test_post_invalid_shows_error_and_keeps_value(client):
     response = client.post("/", data=dict(FORM, r2="0"))
     body = response.get_data(as_text=True)
@@ -330,12 +365,12 @@ def test_html_in_input_is_escaped(client):
     assert "&lt;script&gt;" in body
 ```
 
-- [ ] **Step 2: รันเทสให้เห็นว่า fail**
+- [ ] **Step 3: รันเทสให้เห็นว่า fail**
 
 Run: `.venv\Scripts\python -m pytest tests/test_app.py -v`
 Expected: FAIL — `ModuleNotFoundError: No module named 'app'`
 
-- [ ] **Step 3: สร้าง `app.py`**
+- [ ] **Step 4: สร้าง `app.py`**
 
 ```python
 from flask import Flask, render_template, request
@@ -364,29 +399,43 @@ def calculate():
     return render_template("index.html", values=values, errors={}, result=None)
 ```
 
-- [ ] **Step 4: สร้าง `templates/index.html`**
+- [ ] **Step 5: สร้าง `templates/index.html`**
 
-โครง: `<form method="post" action="/">` มี input `type="text"` `name` ตรงกับ
-`FIELDS` และ `value="{{ values[field] }}"` แสดง label หน่วย (V, Ω, V) และ
-`<p class="error">{{ errors[field] }}</p>` ใต้ช่องที่มี error ใช้
-`<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">`
+- `<link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">`
+  แล้วตามด้วย `style.css`
+- `<div class="container">` > `<div class="row g-4">` > สาม
+  `<section class="col-lg-4" id="input-panel|circuit-panel|results-panel">`
+- `input-panel`: `<form method="post" action="/">`, input `type="text"` `name`
+  ตรงกับ `FIELDS`, `value="{{ values[field] }}"`, label พร้อมหน่วย, error ใต้ช่อง
+  และปุ่ม `<button type="submit">Calculate DC Bias</button>`
+- `circuit-panel`: หัวข้อ `Circuit Diagram` แล้ว `{% include "_circuit.svg" %}`
+- `results-panel`: หัวข้อ `DC Bias Results` (Task 4 เติมผล)
+- `<footer class="goal-bar">` ข้อความ Week 2 Goal ตาม Global Constraints
 
-- [ ] **Step 5: สร้าง `static/style.css`**
+- [ ] **Step 6: สร้าง `templates/_circuit.svg`**
 
-จัดหน้าให้อ่านง่าย: ตัวอักษร sans-serif, การ์ดกว้างสุด ~720px, ฟอร์มเป็น grid
-2 คอลัมน์บนจอใหญ่, `.error` สีแดง, ช่อง input เต็มความกว้าง
+inline `<svg viewBox="0 0 320 360">` วาด: ราง VCC ด้านบน, `R1` จากรางลงโหนด base,
+`R2` จาก base ลง ground, `RC` จากรางลง collector, `RE` จาก emitter ลง ground,
+สัญลักษณ์ NPN (วงกลม, ขา B/C/E, ลูกศร emitter) และ label `VCC, R1, R2, RC, RE, B, C, E, GND`
+ใช้ `stroke`/`fill` จาก CSS ได้ (เช่น `class="wire"`, `class="component"`)
 
-- [ ] **Step 6: รันเทสให้ผ่าน**
+- [ ] **Step 7: สร้าง `static/style.css`**
+
+ทับ Bootstrap เท่าที่จำเป็น: ความสูงการ์ดเท่ากัน, ค่าตัวเลขใช้ monospace,
+`.goal-bar` พื้นหลังเข้มตัวอักษรขาว เว้นระยะบน-ล่าง, `.error` สีแดง,
+สี badge ตาม region (`active` เขียว, `cutoff` เทา, `saturation` ส้ม/แดง)
+
+- [ ] **Step 8: รันเทสให้ผ่าน**
 
 Run: `.venv\Scripts\python -m pytest tests/test_app.py -v`
 Expected: PASS ทั้งหมด
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 9: Commit**
 
 ```powershell
 $git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
-& $git add app.py templates/index.html static/style.css tests/test_app.py
-& $git commit -m "feat: add Flask form with server-side validation"
+& $git add app.py templates static tests/test_app.py
+& $git commit -m "feat: add three-column Bootstrap layout and input form"
 ```
 
 ---
@@ -426,7 +475,7 @@ def test_formatters_handle_extreme_magnitudes():
 
 def test_post_valid_shows_operating_point(client):
     body = client.post("/", data=FORM).get_data(as_text=True)
-    assert "Active" in body
+    assert "Active region approximation OK" in body
     assert "8.82 µA" in body
     assert "1.324 mA" in body
     assert "1.332 mA" in body
@@ -436,9 +485,10 @@ def test_post_valid_shows_operating_point(client):
     assert "10.27 mW" in body
 
 
-def test_saturation_region_is_reported(client):
+def test_saturation_status_box(client):
     body = client.post("/", data=dict(FORM, rc="10000")).get_data(as_text=True)
-    assert "Saturation" in body
+    assert "Saturation region" in body
+    assert "linear model is not valid" in body
 ```
 
 - [ ] **Step 2: รันเทสให้เห็นว่า fail**
@@ -460,9 +510,14 @@ format_power:   |P| < 1 → f"{P*1e3:.2f} mW"; else f"{P:.3f} W"
 
 - [ ] **Step 4: แสดงผลใน `templates/index.html`**
 
-เมื่อ `result` ไม่ใช่ `None`: badge ย่านการทำงานด้วย `{{ result.region|title }}`
-(class `region-{{ result.region }}`), ตารางค่า `IB, IC, IE, VB, VC, VE, VCE, PC`
-ผ่าน filter (`|current`, `|voltage`, `|power`) และรายการ `warnings`
+ใน `results-panel` เมื่อ `result` ไม่ใช่ `None`:
+
+- กล่องสถานะแบบ Bootstrap alert (class `region-{{ result.region }}`) ใช้ข้อความ
+  ตาม Global Constraints (active/cutoff/saturation)
+- ตารางค่าเรียง `VB, VE, VC, VCE, IB, IC, IE` ผ่าน filter
+  (`|current`, `|voltage`) และ `PC` เป็นบรรทัดเสริมด้วย `|power`
+- รายการ `warnings` (ถ้ามี)
+- ถ้า `result` เป็น `None` แสดงข้อความ `Enter parameters and press Calculate DC Bias.`
 
 - [ ] **Step 5: เพิ่มสี badge ใน `static/style.css`**
 
@@ -490,7 +545,7 @@ $git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
 - Modify: `README.md`
 
 **Interfaces:**
-- Consumes: ทุกอย่างจาก Task 1–5
+- Consumes: ทุกอย่างจาก Task 1–4
 - Produces: เอกสารวิธีรัน + ประวัติ commit ที่ push ขึ้น GitHub
 
 - [ ] **Step 1: เพิ่มหัวข้อใน `README.md`**
@@ -498,7 +553,8 @@ $git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
 ระบุ: วัตถุประสงค์, วิธีติดตั้ง (`python -m venv .venv`, `pip install -r requirements.txt`),
 วิธีรัน (`\.venv\Scripts\python app.py` → `http://127.0.0.1:5000`),
 วิธีเทส (`\.venv\Scripts\python -m pytest`), ขอบเขต (ไม่มี AC/transient/FET),
-และเคสตัวอย่างพร้อมค่าที่ควรได้
+UI 3 คอลัมน์ (Input / Circuit / Results) พร้อม Bootstrap ที่ vendor ไว้จึงทำงานออฟไลน์ได้,
+แถบ Week 2 Goal, และเคสตัวอย่างพร้อมค่าที่ควรได้
 
 - [ ] **Step 2: รันเทสทั้งหมดและตรวจ smoke test**
 
@@ -508,7 +564,7 @@ Expected: PASS ทั้งหมด
 Run (background): `.venv\Scripts\python app.py`
 แล้ว `Invoke-WebRequest http://127.0.0.1:5000` → `StatusCode 200`
 และ POST ฟอร์มด้วย `curl.exe -s -X POST -d "vcc=12&r1=47000&r2=10000&rc=2200&re=1000&beta=150&vbe=0.7" http://127.0.0.1:5000`
-Expected: มี `1.324 mA` และ `Active` ในผลลัพธ์ แล้วปิด server
+Expected: มี `1.324 mA` และ `Active region approximation OK` ในผลลัพธ์ แล้วปิด server
 
 - [ ] **Step 3: Commit เอกสาร**
 
