@@ -1,0 +1,75 @@
+{% set field_meta = [
+    ("vcc", "VCC", "V"),
+    ("r1", "R1", "Ω"),
+    ("r2", "R2", "Ω"),
+    ("rc", "RC", "Ω"),
+    ("re", "RE", "Ω"),
+    ("beta", "β", ""),
+    ("vbe", "VBE", "V"),
+] %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ENG29 2121 · BJT CE Bias Calculator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container py-4">
+    <header class="mb-4">
+      <h1 class="h3 mb-1">ENG29 2121 · BJT CE Bias Calculator</h1>
+      <p class="text-muted mb-0">Common-emitter amplifier with voltage-divider bias — DC operating point</p>
+    </header>
+
+    <div class="row g-4">
+      <section class="col-lg-4" id="input-panel">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="h5 card-title">Input Parameters</h2>
+            <form method="post" action="/">
+              {% for field, label, unit in field_meta %}
+              <div class="mb-3">
+                <label class="form-label" for="{{ field }}">{{ label }}{% if unit %} <span class="unit">({{ unit }})</span>{% endif %}</label>
+                <input class="form-control" type="text" inputmode="decimal" id="{{ field }}" name="{{ field }}" value="{{ values[field] }}">
+                {% if errors.get(field) %}<div class="error">{{ errors[field] }}</div>{% endif %}
+              </div>
+              {% endfor %}
+              <button class="btn btn-primary w-100" type="submit">Calculate DC Bias</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="col-lg-4" id="circuit-panel">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="h5 card-title">Circuit Diagram</h2>
+            {% include "_circuit.svg" %}
+          </div>
+        </div>
+      </section>
+
+      <section class="col-lg-4" id="results-panel">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="h5 card-title">DC Bias Results</h2>
+            {% if result %}
+              {# Task 4 renders the operating point here #}
+            {% else %}
+              <p class="text-muted mb-0">Enter parameters and press <strong>Calculate DC Bias</strong>.</p>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="goal-bar mt-4">
+    <div class="container py-3">
+      <strong>Week 2 Goal:</strong> Analyze and verify the DC operating point of a voltage-divider biased common-emitter amplifier.
+    </div>
+  </footer>
+</body>
+</html>
