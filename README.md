@@ -24,6 +24,8 @@ DC Circuit Calculator (Basic/Intermediate)
 ### ติดตั้งและรัน
 
 ```powershell
+git clone https://github.com/jongpongkeaw-ai/Girlab.git
+cd Girlab
 python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
 .venv\Scripts\python app.py
