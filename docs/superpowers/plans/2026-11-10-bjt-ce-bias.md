@@ -489,6 +489,12 @@ def test_saturation_status_box(client):
     body = client.post("/", data=dict(FORM, rc="10000")).get_data(as_text=True)
     assert "Saturation region" in body
     assert "linear model is not valid" in body
+
+
+def test_cutoff_status_box(client):
+    body = client.post("/", data=dict(FORM, r2="1000")).get_data(as_text=True)
+    assert "Cutoff region" in body
+    assert "base current is zero or negative" in body
 ```
 
 - [ ] **Step 2: รันเทสให้เห็นว่า fail**
