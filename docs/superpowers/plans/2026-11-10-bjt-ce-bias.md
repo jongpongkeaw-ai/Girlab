@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** เว็บ Flask หน้าเดียวที่คำนวณจุดทำงาน DC ของ BJT common-emitter แบบ voltage-divider bias พร้อม validation, region warning และการเทียบผลกับวิธี nodal
+**Goal:** เว็บ Flask หน้าเดียวที่คำนวณจุดทำงาน DC ของ BJT common-emitter แบบ voltage-divider bias พร้อม validation และ region warning; ความถูกต้องพิสูจน์ด้วยค่าอ้างอิงที่คำนวณมือในเทส
 
 **Architecture:** แยก `bjt.py` (คณิตศาสตร์ล้วน ไม่ import Flask) ออกจาก `app.py` (routes + Jinja filters) และ template/CSS เทสฝั่งวิศวกรรมด้วย pytest และเทส route ด้วย Flask test client
 
@@ -27,11 +27,11 @@
 
 ## Review Focus
 
-1. ค่าขนาดสุดขั้ว (เช่น `R=1 Ω`, `β=1e6`, `VCC=1e6`) — ต้องไม่ crash และจัดหน่วยได้สมเหตุสมผล (Task 5)
+1. ค่าขนาดสุดขั้ว (เช่น `R=1 Ω`, `β=1e6`, `VCC=1e6`) — ต้องไม่ crash และจัดหน่วยได้สมเหตุสมผล (Task 4)
 2. `VBE` ใกล้ `VBB` มาก (เกือบ cutoff) — `IB` ต้องไม่หารด้วยศูนย์และต้องไม่รายงาน Active ทั้งที่กระแสติดลบ (Task 2)
 3. `R1` หรือ `R2` เป็น 0 — ต้องถูก validation ปฏิเสธ ไม่ใช่ `ZeroDivisionError` (Task 1)
 4. อินพุตมีช่องว่างหรือ scientific notation (`" 4.7e4 "`) — ต้อง parse ได้หรือแจ้ง error รายช่อง ไม่ใช่ 500 (Task 1)
-5. อินพุตมี HTML (`<script>`) — ต้องถูก escape ตอน render กลับในฟอร์ม (Task 4)
+5. อินพุตมี HTML (`<script>`) — ต้องถูก escape ตอน render กลับในฟอร์ม (Task 3)
 
 ---
 
@@ -276,90 +276,7 @@ $git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
 
 ---
 
-### Task 3: Nodal analysis + independent comparison
-
-**Files:**
-- Modify: `bjt.py`
-- Modify: `tests/test_bjt.py`
-
-**Interfaces:**
-- Produces: `_solve_linear(matrix: list[list[float]], rhs: list[float]) -> list[float]`
-  (Gaussian elimination + partial pivoting; ระบบ singular → `ValueError`)
-- Produces: `analyze_nodal(data: BiasInput) -> BiasResult`
-- Produces: `AGREEMENT_TOLERANCE = 1e-6`
-- Produces: `Comparison` dataclass (frozen): `thevenin: BiasResult`, `nodal: BiasResult`, `max_rel_diff: float`, `agrees: bool`
-- Produces: `compare_methods(data: BiasInput) -> Comparison`
-
-- [ ] **Step 1: เขียนเทสที่ยังไม่ผ่าน**
-
-```python
-from bjt import _solve_linear, analyze_nodal, compare_methods
-
-
-def test_solve_linear_system_known_solution():
-    assert _solve_linear([[2, 1], [1, 3]], [5, 10]) == pytest.approx([1.0, 3.0])
-
-
-def test_solve_linear_system_rejects_singular():
-    with pytest.raises(ValueError):
-        _solve_linear([[1, 1], [1, 1]], [1, 2])
-
-
-def test_nodal_matches_thevenin_reference():
-    data = make_input()
-    thevenin = analyze(data)
-    nodal = analyze_nodal(data)
-    assert nodal.ib_a == pytest.approx(thevenin.ib_a, rel=1e-9)
-    assert nodal.ic_a == pytest.approx(thevenin.ic_a, rel=1e-9)
-    assert nodal.vce_v == pytest.approx(thevenin.vce_v, rel=1e-9)
-
-
-def test_compare_methods_agrees():
-    comparison = compare_methods(make_input())
-    assert comparison.agrees is True
-    assert comparison.max_rel_diff < 1e-9
-    assert comparison.thevenin.region == "active"
-```
-
-- [ ] **Step 2: รันเทสให้เห็นว่า fail**
-
-Run: `.venv\Scripts\python -m pytest tests/test_bjt.py -v -k "solve or nodal or compare"`
-Expected: FAIL — `ImportError: cannot import name '_solve_linear'`
-
-- [ ] **Step 3: เพิ่มตัวแก้ระบบเชิงเส้นและ nodal analysis ใน `bjt.py`**
-
-ระบบ 4 สมการ ไม่ทราบค่า `[IB, VB, VC, VE]`:
-
-```
-row 1 (KCL ที่ B):  IB + VB*(1/R1 + 1/R2) = VCC/R1
-row 2 (KCL ที่ C):  beta*IB + VC/RC         = VCC/RC
-row 3 (KCL ที่ E):  -(1+beta)*IB + VE/RE    = 0
-row 4 (VBE):        VB - VE                 = VBE
-```
-
-แก้ด้วย `_solve_linear` แล้วคำนวณ `IC, IE, VCE, PC` และ region/warnings
-ด้วยกติกาเดียวกับ Task 2 (แยกฟังก์ชันช่วยภายในเพื่อไม่ให้กติกาสองชุดต่างกัน)
-
-`compare_methods`: คำนวณทั้งสองวิธี แล้วหา relative diff สูงสุดจาก
-`ib_a, ic_a, ie_a, vb_v, vc_v, ve_v, vce_v` โดยใช้ตัวส่วน
-`max(abs(a), abs(b), 1e-12)`; `agrees = max_rel_diff < AGREEMENT_TOLERANCE`
-
-- [ ] **Step 4: รันเทสให้ผ่าน**
-
-Run: `.venv\Scripts\python -m pytest tests/test_bjt.py -v`
-Expected: PASS ทั้งหมด
-
-- [ ] **Step 5: Commit**
-
-```powershell
-$git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
-& $git add bjt.py tests/test_bjt.py
-& $git commit -m "feat: cross-check bias point with nodal analysis"
-```
-
----
-
-### Task 4: Flask skeleton, form, validation errors
+### Task 3: Flask skeleton, form, validation errors
 
 **Files:**
 - Create: `app.py`
@@ -474,7 +391,7 @@ $git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
 
 ---
 
-### Task 5: Operating point, warnings, comparison display
+### Task 4: Operating point and warnings
 
 **Files:**
 - Modify: `app.py`
@@ -483,7 +400,7 @@ $git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
 - Modify: `tests/test_app.py`
 
 **Interfaces:**
-- Consumes: `compare_methods`, `Comparison`, `BiasResult`
+- Consumes: `analyze`, `BiasResult`
 - Produces: `format_current(amperes: float) -> str`, `format_voltage(volts: float) -> str`,
   `format_power(watts: float) -> str` และ Jinja filters ชื่อ `current`, `voltage`, `power`
 
@@ -519,13 +436,6 @@ def test_post_valid_shows_operating_point(client):
     assert "10.27 mW" in body
 
 
-def test_comparison_is_shown(client):
-    body = client.post("/", data=FORM).get_data(as_text=True)
-    assert "Thevenin" in body
-    assert "Nodal" in body
-    assert "✓" in body
-
-
 def test_saturation_region_is_reported(client):
     body = client.post("/", data=dict(FORM, rc="10000")).get_data(as_text=True)
     assert "Saturation" in body
@@ -545,16 +455,14 @@ format_power:   |P| < 1 → f"{P*1e3:.2f} mW"; else f"{P:.3f} W"
 ```
 
 ผูกด้วย `app.jinja_env.filters.update(current=..., voltage=..., power=...)`
-ใน route `POST /` ที่ผ่าน validation ให้เรียก `compare_methods(data)` แล้วส่ง
-`result=comparison`
+ใน route `POST /` ที่ผ่าน validation ให้เรียก `analyze(data)` แล้วส่ง
+`result=result`
 
 - [ ] **Step 4: แสดงผลใน `templates/index.html`**
 
-เมื่อ `result` ไม่ใช่ `None`: badge ย่านการทำงานด้วย `{{ result.thevenin.region|title }}`
-(class `region-{{ result.thevenin.region }}`), ตารางค่า `IB, IC, IE, VB, VC, VE, VCE, PC`
-ผ่าน filter (`|current`, `|voltage`, `|power`), รายการ `warnings`,
-และตารางเทียบ Thevenin/Nodal พร้อม `max_rel_diff` เป็นเปอร์เซ็นต์ (`%.3f%%`)
-และ `✓` เมื่อ `result.agrees`
+เมื่อ `result` ไม่ใช่ `None`: badge ย่านการทำงานด้วย `{{ result.region|title }}`
+(class `region-{{ result.region }}`), ตารางค่า `IB, IC, IE, VB, VC, VE, VCE, PC`
+ผ่าน filter (`|current`, `|voltage`, `|power`) และรายการ `warnings`
 
 - [ ] **Step 5: เพิ่มสี badge ใน `static/style.css`**
 
@@ -571,12 +479,12 @@ Expected: PASS ทั้งหมด (รวม `test_electrical.py` เดิ�
 ```powershell
 $git = "$env:LOCALAPPDATA\Programs\Git\cmd\git.exe"
 & $git add app.py templates/index.html static/style.css tests/test_app.py
-& $git commit -m "feat: show bias point, warnings, and method comparison"
+& $git commit -m "feat: show bias point and warnings"
 ```
 
 ---
 
-### Task 6: README, full verification, merge and push
+### Task 5: README, full verification, merge and push
 
 **Files:**
 - Modify: `README.md`
