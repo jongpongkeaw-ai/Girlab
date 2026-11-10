@@ -46,3 +46,7 @@ def calculate():
     if errors:
         return render_template("index.html", values=values, errors=errors, result=None)
     return render_template("index.html", values=values, errors={}, result=analyze(data))
+
+
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000)
