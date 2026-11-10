@@ -10,23 +10,33 @@ DEFAULTS = {
 }
 
 
+def _fixed(value: float, decimals: int) -> str:
+    """จัดรูปแบบทศนิยมโดยไม่แสดง -0.00 จากค่าลบที่น้อยมาก"""
+    text = f"{value:.{decimals}f}"
+    if text.startswith("-") and float(text) == 0:
+        return text[1:]
+    return text
+
+
 def format_current(amperes: float) -> str:
     magnitude = abs(amperes)
+    if magnitude < 1e-6:
+        return f"{_fixed(amperes * 1e9, 2)} nA"
     if magnitude < 1e-3:
-        return f"{amperes * 1e6:.2f} µA"
+        return f"{_fixed(amperes * 1e6, 2)} µA"
     if magnitude < 1:
-        return f"{amperes * 1e3:.3f} mA"
-    return f"{amperes:.3f} A"
+        return f"{_fixed(amperes * 1e3, 3)} mA"
+    return f"{_fixed(amperes, 3)} A"
 
 
 def format_voltage(volts: float) -> str:
-    return f"{volts:.3f} V"
+    return f"{_fixed(volts, 3)} V"
 
 
 def format_power(watts: float) -> str:
     if abs(watts) < 1:
-        return f"{watts * 1e3:.2f} mW"
-    return f"{watts:.3f} W"
+        return f"{_fixed(watts * 1e3, 2)} mW"
+    return f"{_fixed(watts, 3)} W"
 
 
 app.jinja_env.filters.update(

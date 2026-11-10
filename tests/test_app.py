@@ -61,8 +61,30 @@ def test_formatters_pick_units():
 
 def test_formatters_handle_extreme_magnitudes():
     assert format_current(1e6).endswith(" A")
-    assert format_current(1e-9).endswith(" µA")
+    assert format_current(1e-9) == "1.00 nA"
     assert format_voltage(1e6) == "1000000.000 V"
+
+
+def test_formatters_use_nanoamps_for_tiny_currents():
+    assert format_current(1.405e-9) == "1.41 nA"
+    assert format_current(-1e-12) == "0.00 nA"
+
+
+def test_formatters_never_show_negative_zero():
+    assert format_voltage(-1e-9) == "0.000 V"
+    assert format_power(-1e-12) == "0.00 mW"
+
+
+def test_large_beta_shows_nanoamp_base_current(client):
+    body = client.post("/", data=dict(FORM, beta="1000000")).get_data(as_text=True)
+    assert "Active region approximation OK" in body
+    assert "nA" in body
+
+
+def test_circuit_has_filled_emitter_arrow(client):
+    body = client.get("/").get_data(as_text=True)
+    assert '<polygon class="emitter-arrow"' in body
+    assert 'x1="230" y1="300" x2="230" y2="300"' not in body
 
 
 def test_post_valid_shows_operating_point(client):
