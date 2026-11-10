@@ -47,3 +47,54 @@ def parse_bias_input(raw: Mapping[str, str]) -> tuple[BiasInput | None, dict[str
     if errors:
         return None, errors
     return BiasInput(**values), {}
+
+
+VCE_SAT = 0.2
+
+
+@dataclass(frozen=True)
+class BiasResult:
+    ib_a: float
+    ic_a: float
+    ie_a: float
+    vb_v: float
+    vc_v: float
+    ve_v: float
+    vce_v: float
+    pc_w: float
+    region: str
+    warnings: tuple[str, ...]
+
+
+def analyze(data: BiasInput) -> BiasResult:
+    """คำนวณจุดทำงาน DC ด้วยสมมูลเทเวนิน"""
+    vbb = data.vcc * data.r2 / (data.r1 + data.r2)
+    rb = data.r1 * data.r2 / (data.r1 + data.r2)
+    ib = (vbb - data.vbe) / (rb + (1 + data.beta) * data.re)
+    ic = data.beta * ib
+    ie = (1 + data.beta) * ib
+    ve = ie * data.re
+    vc = data.vcc - ic * data.rc
+    vce = vc - ve
+    vb = data.vbe + ve
+    pc = vce * ic
+
+    warnings: list[str] = []
+    if ib <= 0:
+        region = "cutoff"
+        warnings.append("Transistor is in cutoff: base current is zero or negative.")
+    elif vce <= VCE_SAT:
+        region = "saturation"
+        warnings.append(
+            "Transistor is in saturation: VCE is at or below VCE(sat); "
+            "the linear model is not valid."
+        )
+    else:
+        region = "active"
+
+    if ib > 0 and data.vcc / (data.r1 + data.r2) < 10 * ib:
+        warnings.append(
+            "Divider current is less than 10x IB; the bias point depends strongly on beta."
+        )
+
+    return BiasResult(ib, ic, ie, vb, vc, ve, vce, pc, region, tuple(warnings))
