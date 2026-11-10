@@ -56,7 +56,27 @@
           <div class="card-body">
             <h2 class="h5 card-title">DC Bias Results</h2>
             {% if result %}
-              {# Task 4 renders the operating point here #}
+              {% set status_text = {
+                  "active": "Active region approximation OK",
+                  "cutoff": "Cutoff region — base current is zero or negative",
+                  "saturation": "Saturation region — linear model is not valid (VCE ≤ 0.2 V)"
+              } %}
+              <div class="status-box region-{{ result.region }}">{{ status_text[result.region] }}</div>
+              <dl class="row mt-3 mb-0">
+                <dt class="col-6">VB</dt><dd class="col-6 text-end result-value">{{ result.vb_v|voltage }}</dd>
+                <dt class="col-6">VE</dt><dd class="col-6 text-end result-value">{{ result.ve_v|voltage }}</dd>
+                <dt class="col-6">VC</dt><dd class="col-6 text-end result-value">{{ result.vc_v|voltage }}</dd>
+                <dt class="col-6">VCE</dt><dd class="col-6 text-end result-value">{{ result.vce_v|voltage }}</dd>
+                <dt class="col-6">IB</dt><dd class="col-6 text-end result-value">{{ result.ib_a|current }}</dd>
+                <dt class="col-6">IC</dt><dd class="col-6 text-end result-value">{{ result.ic_a|current }}</dd>
+                <dt class="col-6">IE</dt><dd class="col-6 text-end result-value">{{ result.ie_a|current }}</dd>
+              </dl>
+              <p class="text-muted mt-2 mb-0">PC = <span class="result-value">{{ result.pc_w|power }}</span></p>
+              {% if result.warnings %}
+              <ul class="warning-list">
+                {% for warning in result.warnings %}<li>{{ warning }}</li>{% endfor %}
+              </ul>
+              {% endif %}
             {% else %}
               <p class="text-muted mb-0">Enter parameters and press <strong>Calculate DC Bias</strong>.</p>
             {% endif %}
