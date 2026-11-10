@@ -41,6 +41,17 @@ body {
   color: #ffffff;
 }
 
+.repo-link {
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.repo-link:hover {
+  color: #cfe8ff;
+}
+
 .result-value {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-variant-numeric: tabular-nums;

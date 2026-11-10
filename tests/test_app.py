@@ -110,3 +110,9 @@ def test_cutoff_status_box(client):
     assert "Cutoff region" in body
     assert "base current is zero or negative" in body
 
+
+def test_footer_links_to_github_repository(client):
+    body = client.get("/").get_data(as_text=True)
+    assert 'href="https://github.com/jongpongkeaw-ai/Girlab"' in body
+    assert "GitHub" in body
+
