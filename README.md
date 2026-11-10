@@ -13,6 +13,13 @@ DC Circuit Calculator (Basic/Intermediate)
 เว็บแอป Flask สำหรับคำนวณจุดทำงาน DC ของวงจร BJT common-emitter
 แบบ voltage-divider bias พร้อมตรวจสอบย่านการทำงาน
 
+### Live demo
+
+https://jongpongkeaw-ai.github.io/Girlab/
+
+GitHub Pages เสิร์ฟ static mirror (JavaScript) ของเครื่องคำนวณเดียวกัน
+โดยไม่ต้องมี server — ส่วน Flask app ด้านล่างยังเป็น implementation หลัก
+
 ### ความสามารถ
 
 - รับค่า `VCC, R1, R2, RC, RE, β, VBE`
