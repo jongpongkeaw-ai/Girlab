@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ENG29 2121 · BJT CE Bias Calculator</title>
+  <link rel="stylesheet" href="static/vendor/bootstrap.min.css">
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+  <main class="container py-4">
+    <header class="mb-4">
+      <h1 class="h3 mb-1">ENG29 2121 · BJT CE Bias Calculator</h1>
+      <p class="text-muted mb-0">Common-emitter amplifier with voltage-divider bias — DC operating point</p>
+    </header>
+
+    <div class="row g-4">
+      <section class="col-lg-4" id="input-panel">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="h5 card-title">Input Parameters</h2>
+            <form id="bias-form" novalidate>
+              <div class="mb-3">
+                <label class="form-label" for="vcc">VCC <span class="unit">(V)</span></label>
+                <input class="form-control" type="text" inputmode="decimal" id="vcc" name="vcc" value="12">
+                <div class="error" data-error-for="vcc"></div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="r1">R1 <span class="unit">(Ω)</span></label>
+                <input class="form-control" type="text" inputmode="decimal" id="r1" name="r1" value="47000">
+                <div class="error" data-error-for="r1"></div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="r2">R2 <span class="unit">(Ω)</span></label>
+                <input class="form-control" type="text" inputmode="decimal" id="r2" name="r2" value="10000">
+                <div class="error" data-error-for="r2"></div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="rc">RC <span class="unit">(Ω)</span></label>
+                <input class="form-control" type="text" inputmode="decimal" id="rc" name="rc" value="2200">
+                <div class="error" data-error-for="rc"></div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="re">RE <span class="unit">(Ω)</span></label>
+                <input class="form-control" type="text" inputmode="decimal" id="re" name="re" value="1000">
+                <div class="error" data-error-for="re"></div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="beta">β</label>
+                <input class="form-control" type="text" inputmode="decimal" id="beta" name="beta" value="150">
+                <div class="error" data-error-for="beta"></div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="vbe">VBE <span class="unit">(V)</span></label>
+                <input class="form-control" type="text" inputmode="decimal" id="vbe" name="vbe" value="0.7">
+                <div class="error" data-error-for="vbe"></div>
+              </div>
+              <button class="btn btn-primary w-100" type="submit">Calculate DC Bias</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="col-lg-4" id="circuit-panel">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="h5 card-title">Circuit Diagram</h2>
+            <svg viewBox="0 0 320 360" role="img" aria-label="Common-emitter amplifier with voltage-divider bias" class="circuit-svg">
+              <g class="wire" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round">
+                <line x1="60" y1="40" x2="260" y2="40"/>
+                <line x1="90" y1="40" x2="90" y2="70"/>
+                <line x1="90" y1="120" x2="90" y2="150"/>
+                <line x1="90" y1="150" x2="160" y2="150"/>
+                <line x1="160" y1="150" x2="160" y2="190"/>
+                <line x1="160" y1="190" x2="186" y2="190"/>
+                <line x1="90" y1="150" x2="90" y2="200"/>
+                <line x1="90" y1="250" x2="90" y2="300"/>
+                <line x1="230" y1="40" x2="230" y2="70"/>
+                <line x1="230" y1="120" x2="230" y2="150"/>
+                <line x1="230" y1="150" x2="218" y2="158"/>
+                <line x1="218" y1="158" x2="186" y2="176"/>
+                <line x1="186" y1="204" x2="218" y2="222"/>
+                <line x1="218" y1="222" x2="230" y2="230"/>
+                <line x1="230" y1="230" x2="230" y2="250"/>
+                <line x1="186" y1="168" x2="186" y2="212"/>
+              </g>
+              <g class="component" fill="#ffffff" stroke="#334155" stroke-width="2">
+                <rect x="82" y="70" width="16" height="50" rx="2"/>
+                <rect x="82" y="200" width="16" height="50" rx="2"/>
+                <rect x="222" y="70" width="16" height="50" rx="2"/>
+                <rect x="222" y="250" width="16" height="50" rx="2"/>
+                <circle cx="202" cy="190" r="34" fill="none"/>
+                <polygon class="emitter-arrow" points="194,206 210,215 201,218" fill="#334155" stroke="none"/>
+              </g>
+              <g class="label" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">
+                <text x="160" y="28" text-anchor="middle" font-weight="600">VCC</text>
+                <text x="72" y="98" text-anchor="end">R1</text>
+                <text x="72" y="228" text-anchor="end">R2</text>
+                <text x="250" y="98" text-anchor="start">RC</text>
+                <text x="250" y="278" text-anchor="start">RE</text>
+                <text x="170" y="184" text-anchor="end" font-weight="600">B</text>
+                <text x="224" y="152" text-anchor="start" font-weight="600">C</text>
+                <text x="224" y="236" text-anchor="start" font-weight="600">E</text>
+                <text x="90" y="330" text-anchor="middle">GND</text>
+                <text x="230" y="330" text-anchor="middle">GND</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="col-lg-4" id="results-panel">
+        <div class="card h-100">
+          <div class="card-body">
+            <h2 class="h5 card-title">DC Bias Results</h2>
+            <div id="results-empty">
+              <p class="text-muted mb-0">Enter parameters and press <strong>Calculate DC Bias</strong>.</p>
+            </div>
+            <div id="results-output" hidden>
+              <div id="status-box" class="status-box"></div>
+              <dl class="row mt-3 mb-0">
+                <dt class="col-6">VB</dt><dd class="col-6 text-end result-value" id="out-vb"></dd>
+                <dt class="col-6">VE</dt><dd class="col-6 text-end result-value" id="out-ve"></dd>
+                <dt class="col-6">VC</dt><dd class="col-6 text-end result-value" id="out-vc"></dd>
+                <dt class="col-6">VCE</dt><dd class="col-6 text-end result-value" id="out-vce"></dd>
+                <dt class="col-6">IB</dt><dd class="col-6 text-end result-value" id="out-ib"></dd>
+                <dt class="col-6">IC</dt><dd class="col-6 text-end result-value" id="out-ic"></dd>
+                <dt class="col-6">IE</dt><dd class="col-6 text-end result-value" id="out-ie"></dd>
+              </dl>
+              <p class="text-muted mt-2 mb-0">PC = <span class="result-value" id="out-pc"></span></p>
+              <ul class="warning-list" id="out-warnings"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="goal-bar mt-4">
+    <div class="container py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center">
+      <div>
+        <strong>Week 2 Goal:</strong> Analyze and verify the DC operating point of a voltage-divider biased common-emitter amplifier.
+      </div>
+      <a class="repo-link" href="https://github.com/jongpongkeaw-ai/Girlab" target="_blank" rel="noopener">GitHub Repository</a>
+    </div>
+  </footer>
+
+  <script src="demo.js"></script>
+</body>
+</html>
