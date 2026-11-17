@@ -11,7 +11,8 @@ DC Circuit Calculator (Basic/Intermediate)
 ## BJT Common-Emitter DC Bias Web App (ENG29 2121)
 
 เว็บแอป Flask สำหรับคำนวณจุดทำงาน DC ของวงจร BJT common-emitter
-แบบ voltage-divider bias พร้อมตรวจสอบย่านการทำงาน
+รองรับ 3 โหมดไบอัสด้วยแหล่งจ่ายเดียว: voltage-divider, fixed bias และ emitter bias
+พร้อมตรวจสอบย่านการทำงาน
 
 ### Live demo
 
@@ -22,10 +23,13 @@ GitHub Pages เสิร์ฟ static mirror (JavaScript) ของเครื
 
 ### ความสามารถ
 
-- รับค่า `VCC, R1, R2, RC, RE, β, VBE`
+- เลือกโหมดได้ 3 แบบ: `Voltage Divider`, `Fixed Bias`, `Emitter Bias` (แหล่งจ่ายเดียว)
+- Divider: รับ `VCC, R1, R2, RC, RE, β, VBE`
+- Fixed: รับ `VCC, RB, RC, β, VBE`
+- Emitter: รับ `VCC, RB, RC, RE, β, VBE`
 - แสดง `VB, VE, VC, VCE, IB, IC, IE` (และ `PC`) พร้อมหน่วย
-- ตรวจสอบอินพุตและเตือนย่าน Active / Cutoff / Saturation
-- UI 3 คอลัมน์: Input / Circuit Diagram / Results พร้อมแถบ Week 2 Goal
+- ตรวจสอบอินพุตตามโหมดและเตือนย่าน Active / Cutoff / Saturation
+- UI 3 คอลัมน์: Input / Circuit Diagram / Results พร้อมแถบ Week 3 Goal
 - Bootstrap 5.3.3 ถูก vendor ไว้ใน `static/vendor/` จึงทำงานได้โดยไม่ต่ออินเทอร์เน็ต
 
 ### ติดตั้งและรัน
@@ -51,6 +55,14 @@ python -m venv .venv
 `VCC=12 V, R1=47000 Ω, R2=10000 Ω, RC=2200 Ω, RE=1000 Ω, β=150, VBE=0.7 V`
 
 → `IB=8.82 µA, IC=1.324 mA, IE=1.332 mA, VB=2.032 V, VC=9.088 V, VE=1.332 V, VCE=7.755 V` (Active region approximation OK)
+
+Fixed Bias: `VCC=12 V, RB=470000 Ω, RC=2200 Ω, β=150, VBE=0.7 V`
+
+→ `IB=24.04 µA, IC=3.606 mA, IE=3.630 mA, VB=0.700 V, VE=0.000 V, VC=4.066 V, VCE=4.066 V`
+
+Emitter Bias: `VCC=12 V, RB=470000 Ω, RC=2200 Ω, RE=1000 Ω, β=150, VBE=0.7 V`
+
+→ `IB=18.20 µA, IC=2.729 mA, IE=2.748 mA, VB=3.448 V, VC=5.995 V, VE=2.748 V, VCE=3.248 V`
 
 ### ขอบเขต
 

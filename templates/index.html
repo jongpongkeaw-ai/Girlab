@@ -1,12 +1,3 @@
-{% set field_meta = [
-    ("vcc", "VCC", "V"),
-    ("r1", "R1", "Ω"),
-    ("r2", "R2", "Ω"),
-    ("rc", "RC", "Ω"),
-    ("re", "RE", "Ω"),
-    ("beta", "β", ""),
-    ("vbe", "VBE", "V"),
-] %}
 <!doctype html>
 <html lang="en">
 <head>
@@ -18,17 +9,26 @@
 </head>
 <body>
   <main class="container py-4">
-    <header class="mb-4">
+    <header class="mb-3">
       <h1 class="h3 mb-1">ENG29 2121 · BJT CE Bias Calculator</h1>
-      <p class="text-muted mb-0">Common-emitter amplifier with voltage-divider bias — DC operating point</p>
+      <p class="text-muted mb-0">{{ mode_descriptions[mode] }}</p>
     </header>
+
+    <nav class="mode-tabs mb-4" aria-label="Bias mode">
+      {% for mode_id in modes %}
+      <a class="mode-tab{% if mode_id == mode %} active{% endif %}"
+         href="{{ url_for('index', mode=mode_id) }}"
+         {% if mode_id == mode %}aria-current="page"{% endif %}>{{ mode_labels[mode_id] }}</a>
+      {% endfor %}
+    </nav>
 
     <div class="row g-4">
       <section class="col-lg-4" id="input-panel">
         <div class="card h-100">
           <div class="card-body">
-            <h2 class="h5 card-title">Input Parameters</h2>
+            <h2 class="h5 card-title">{{ mode_labels[mode] }} Input</h2>
             <form method="post" action="/">
+              <input type="hidden" name="mode" value="{{ mode }}">
               {% for field, label, unit in field_meta %}
               <div class="mb-3">
                 <label class="form-label" for="{{ field }}">{{ label }}{% if unit %} <span class="unit">({{ unit }})</span>{% endif %}</label>
@@ -36,6 +36,7 @@
                 {% if errors.get(field) %}<div class="error">{{ errors[field] }}</div>{% endif %}
               </div>
               {% endfor %}
+              {% if errors.get('mode') %}<div class="error">{{ errors['mode'] }}</div>{% endif %}
               <button class="btn btn-primary w-100" type="submit">Calculate DC Bias</button>
             </form>
           </div>
@@ -46,7 +47,7 @@
         <div class="card h-100">
           <div class="card-body">
             <h2 class="h5 card-title">Circuit Diagram</h2>
-            {% include "_circuit.svg" %}
+            {% include circuit %}
           </div>
         </div>
       </section>
@@ -61,20 +62,20 @@
                   "cutoff": "Cutoff region — base current is zero or negative",
                   "saturation": "Saturation region — linear model is not valid (VCE ≤ 0.2 V)"
               } %}
-              <div class="status-box region-{{ result.region }}">{{ status_text[result.region] }}</div>
+              <div class="status-box region-{{ result['region'] }}">{{ status_text[result['region']] }}</div>
               <dl class="row mt-3 mb-0">
-                <dt class="col-6">VB</dt><dd class="col-6 text-end result-value">{{ result.vb_v|voltage }}</dd>
-                <dt class="col-6">VE</dt><dd class="col-6 text-end result-value">{{ result.ve_v|voltage }}</dd>
-                <dt class="col-6">VC</dt><dd class="col-6 text-end result-value">{{ result.vc_v|voltage }}</dd>
-                <dt class="col-6">VCE</dt><dd class="col-6 text-end result-value">{{ result.vce_v|voltage }}</dd>
-                <dt class="col-6">IB</dt><dd class="col-6 text-end result-value">{{ result.ib_a|current }}</dd>
-                <dt class="col-6">IC</dt><dd class="col-6 text-end result-value">{{ result.ic_a|current }}</dd>
-                <dt class="col-6">IE</dt><dd class="col-6 text-end result-value">{{ result.ie_a|current }}</dd>
+                <dt class="col-6">VB</dt><dd class="col-6 text-end result-value">{{ result['vb_v']|voltage }}</dd>
+                <dt class="col-6">VE</dt><dd class="col-6 text-end result-value">{{ result['ve_v']|voltage }}</dd>
+                <dt class="col-6">VC</dt><dd class="col-6 text-end result-value">{{ result['vc_v']|voltage }}</dd>
+                <dt class="col-6">VCE</dt><dd class="col-6 text-end result-value">{{ result['vce_v']|voltage }}</dd>
+                <dt class="col-6">IB</dt><dd class="col-6 text-end result-value">{{ result['ib_a']|current }}</dd>
+                <dt class="col-6">IC</dt><dd class="col-6 text-end result-value">{{ result['ic_a']|current }}</dd>
+                <dt class="col-6">IE</dt><dd class="col-6 text-end result-value">{{ result['ie_a']|current }}</dd>
               </dl>
-              <p class="text-muted mt-2 mb-0">PC = <span class="result-value">{{ result.pc_w|power }}</span></p>
-              {% if result.warnings %}
+              <p class="text-muted mt-2 mb-0">PC = <span class="result-value">{{ result['pc_w']|power }}</span></p>
+              {% if result['warnings'] %}
               <ul class="warning-list">
-                {% for warning in result.warnings %}<li>{{ warning }}</li>{% endfor %}
+                {% for warning in result['warnings'] %}<li>{{ warning }}</li>{% endfor %}
               </ul>
               {% endif %}
             {% else %}
@@ -89,7 +90,7 @@
   <footer class="goal-bar mt-4">
     <div class="container py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center">
       <div>
-        <strong>Week 2 Goal:</strong> Analyze and verify the DC operating point of a voltage-divider biased common-emitter amplifier.
+        <strong>Week 3 Goal:</strong> {{ goal }}
       </div>
       <a class="repo-link" href="https://github.com/jongpongkeaw-ai/Girlab" target="_blank" rel="noopener">GitHub Repository</a>
     </div>

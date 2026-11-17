@@ -28,7 +28,7 @@ def test_layout_has_three_panels_and_goal_bar(client):
         assert f'id="{panel}"' in body
     assert "<svg" in body
     assert "/static/vendor/bootstrap.min.css" in body
-    assert "Week 2 Goal" in body
+    assert "Week 3 Goal" in body
 
 
 def test_bootstrap_css_is_served_locally(client):

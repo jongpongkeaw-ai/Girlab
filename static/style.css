@@ -29,6 +29,33 @@ body {
   margin-top: 0.25rem;
 }
 
+.mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mode-tab {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  color: var(--ink);
+  background: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mode-tab:hover {
+  border-color: #0d3b66;
+  color: #0d3b66;
+}
+
+.mode-tab.active {
+  background: #0d3b66;
+  border-color: #0d3b66;
+  color: #ffffff;
+}
+
 .circuit-svg {
   display: block;
   width: 100%;

@@ -1,12 +1,76 @@
 from flask import Flask, render_template, request
 
-from bjt import FIELDS, analyze, parse_bias_input
+from bjt import MODES, analyze_mode, parse_mode_input
 
 app = Flask(__name__)
 
+MODE_LABELS = {
+    "divider": "Voltage Divider",
+    "fixed": "Fixed Bias",
+    "emitter": "Emitter Bias",
+}
+
+MODE_DESCRIPTIONS = {
+    "divider": "Common-emitter amplifier with voltage-divider bias — DC operating point",
+    "fixed": "Common-emitter amplifier with fixed bias from a single supply — DC operating point",
+    "emitter": "Common-emitter amplifier with emitter bias from a single supply — DC operating point",
+}
+
+DIVIDER_FIELDS = ("vcc", "r1", "r2", "rc", "re", "beta", "vbe")
+FIXED_FIELDS = ("vcc", "rb", "rc", "beta", "vbe")
+EMITTER_FIELDS = ("vcc", "rb", "rc", "re", "beta", "vbe")
+
+FIELD_META = {
+    "divider": (
+        ("vcc", "VCC", "V"),
+        ("r1", "R1", "Ω"),
+        ("r2", "R2", "Ω"),
+        ("rc", "RC", "Ω"),
+        ("re", "RE", "Ω"),
+        ("beta", "β", ""),
+        ("vbe", "VBE", "V"),
+    ),
+    "fixed": (
+        ("vcc", "VCC", "V"),
+        ("rb", "RB", "Ω"),
+        ("rc", "RC", "Ω"),
+        ("beta", "β", ""),
+        ("vbe", "VBE", "V"),
+    ),
+    "emitter": (
+        ("vcc", "VCC", "V"),
+        ("rb", "RB", "Ω"),
+        ("rc", "RC", "Ω"),
+        ("re", "RE", "Ω"),
+        ("beta", "β", ""),
+        ("vbe", "VBE", "V"),
+    ),
+}
+
 DEFAULTS = {
-    "vcc": "12", "r1": "47000", "r2": "10000", "rc": "2200",
-    "re": "1000", "beta": "150", "vbe": "0.7",
+    "divider": {
+        "vcc": "12", "r1": "47000", "r2": "10000", "rc": "2200",
+        "re": "1000", "beta": "150", "vbe": "0.7",
+    },
+    "fixed": {
+        "vcc": "12", "rb": "470000", "rc": "2200", "beta": "150", "vbe": "0.7",
+    },
+    "emitter": {
+        "vcc": "12", "rb": "470000", "rc": "2200", "re": "1000",
+        "beta": "150", "vbe": "0.7",
+    },
+}
+
+CIRCUIT_TEMPLATES = {
+    "divider": "_circuit.svg",
+    "fixed": "_circuit_fixed.svg",
+    "emitter": "_circuit_emitter.svg",
+}
+
+MODE_GOALS = {
+    "divider": "Analyze and verify the DC operating point of a voltage-divider biased common-emitter amplifier.",
+    "fixed": "Analyze and verify the DC operating point of a fixed-biased common-emitter amplifier.",
+    "emitter": "Analyze and verify the DC operating point of an emitter-biased common-emitter amplifier.",
 }
 
 
@@ -44,19 +108,58 @@ app.jinja_env.filters.update(
 )
 
 
+def _mode_from(value: str | None) -> str:
+    """โหมดที่ไม่รู้จักหรือไม่ส่งมาจะกลับไปใช้ Divider เพื่อความเข้ากันได้เดิม"""
+    return value if value in MODES else "divider"
+
+
+def _render(mode: str, values: dict[str, str], errors: dict[str, str], result):
+    return render_template(
+        "index.html",
+        mode=mode,
+        modes=MODES,
+        mode_labels=MODE_LABELS,
+        mode_descriptions=MODE_DESCRIPTIONS,
+        field_meta=FIELD_META[mode],
+        values=values,
+        errors=errors,
+        result=result,
+        circuit=CIRCUIT_TEMPLATES[mode],
+        goal=MODE_GOALS[mode],
+    )
+
+
+def _read_form(fields: tuple[str, ...]) -> dict[str, str]:
+    """อ่านเฉพาะฟิลด์ของโหมดที่เลือก โดยคงค่าดิบไว้แสดงกลับในฟอร์ม"""
+    return {field: request.form.get(field, "") for field in fields}
+
+
 @app.get("/")
 def index():
-    return render_template("index.html", values=DEFAULTS, errors={}, result=None)
+    mode = _mode_from(request.args.get("mode"))
+    if mode == "fixed":
+        return _render("fixed", DEFAULTS["fixed"], {}, None)
+    elif mode == "emitter":
+        return _render("emitter", DEFAULTS["emitter"], {}, None)
+    return _render("divider", DEFAULTS["divider"], {}, None)
 
 
 @app.post("/")
 def calculate():
-    values = {field: request.form.get(field, "") for field in FIELDS}
-    data, errors = parse_bias_input(values)
+    mode = _mode_from(request.form.get("mode"))
+
+    if mode == "fixed":
+        values = _read_form(FIXED_FIELDS)
+        data, errors = parse_mode_input("fixed", values)
+    elif mode == "emitter":
+        values = _read_form(EMITTER_FIELDS)
+        data, errors = parse_mode_input("emitter", values)
+    else:
+        # Divider เป็นโหมดเริ่มต้นและคงตัวตรวจเดิมไว้ทั้งหมด
+        mode = "divider"
+        values = _read_form(DIVIDER_FIELDS)
+        data, errors = parse_mode_input("divider", values)
+
     if errors:
-        return render_template("index.html", values=values, errors=errors, result=None)
-    return render_template("index.html", values=values, errors={}, result=analyze(data))
-
-
-if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000)
+        return _render(mode, values, errors, None)
+    return _render(mode, values, {}, analyze_mode(mode, data))
