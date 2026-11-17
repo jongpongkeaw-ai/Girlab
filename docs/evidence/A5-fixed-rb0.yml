@@ -1,0 +1,57 @@
+- generic [active] [ref=f36e1]:
+  - main [ref=f36e2]:
+    - generic [ref=f36e3]:
+      - heading "ENG29 2121 · BJT CE Bias Calculator" [level=1] [ref=f36e4]
+      - paragraph [ref=f36e5]: Common-emitter amplifier with fixed bias from a single supply — DC operating point
+    - navigation "Bias mode" [ref=f36e6]:
+      - link "Voltage Divider" [ref=f36e7] [cursor=pointer]:
+        - /url: /?mode=divider
+      - link "Fixed Bias" [ref=f36e8] [cursor=pointer]:
+        - /url: /?mode=fixed
+      - link "Emitter Bias" [ref=f36e9] [cursor=pointer]:
+        - /url: /?mode=emitter
+    - generic [ref=f36e10]:
+      - generic [ref=f36e13]:
+        - heading "Fixed Bias Input" [level=2] [ref=f36e14]
+        - generic [ref=f36e15]:
+          - generic [ref=f36e16]:
+            - generic [ref=f36e17]: VCC (V)
+            - textbox "VCC (V)" [ref=f36e18]: "12"
+          - generic [ref=f36e19]:
+            - generic [ref=f36e20]: RB (Ω)
+            - textbox "RB (Ω)" [ref=f36e21]: "0"
+            - generic [ref=f36e22]: Must be greater than zero
+          - generic [ref=f36e23]:
+            - generic [ref=f36e24]: RC (Ω)
+            - textbox "RC (Ω)" [ref=f36e25]: "2200"
+          - generic [ref=f36e26]:
+            - generic [ref=f36e27]: β
+            - textbox "β" [ref=f36e28]: "150"
+          - generic [ref=f36e29]:
+            - generic [ref=f36e30]: VBE (V)
+            - textbox "VBE (V)" [ref=f36e31]: "0.7"
+          - button "Calculate DC Bias" [ref=f36e32] [cursor=pointer]
+      - generic [ref=f36e35]:
+        - heading "Circuit Diagram" [level=2] [ref=f36e36]
+        - img "Common-emitter amplifier with fixed bias" [ref=f36e37]:
+          - generic [ref=f36e48]:
+            - generic [ref=f36e49]: VCC
+            - generic [ref=f36e50]: RB
+            - generic [ref=f36e51]: RC
+            - generic [ref=f36e52]: B
+            - generic [ref=f36e53]: C
+            - generic [ref=f36e54]: E
+            - generic [ref=f36e55]: GND
+      - generic [ref=f36e58]:
+        - heading "DC Bias Results" [level=2] [ref=f36e59]
+        - paragraph [ref=f36e60]:
+          - text: Enter parameters and press
+          - strong [ref=f36e61]: Calculate DC Bias
+          - text: .
+  - contentinfo [ref=f36e62]:
+    - generic [ref=f36e63]:
+      - generic [ref=f36e64]:
+        - strong [ref=f36e65]: "Week 3 Goal:"
+        - text: Analyze and verify the DC operating point of a fixed-biased common-emitter amplifier.
+      - link "GitHub Repository" [ref=f36e66] [cursor=pointer]:
+        - /url: https://github.com/jongpongkeaw-ai/Girlab

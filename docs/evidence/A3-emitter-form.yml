@@ -1,0 +1,60 @@
+- generic [active] [ref=f32e1]:
+  - main [ref=f32e2]:
+    - generic [ref=f32e3]:
+      - heading "ENG29 2121 · BJT CE Bias Calculator" [level=1] [ref=f32e4]
+      - paragraph [ref=f32e5]: Common-emitter amplifier with emitter bias from a single supply — DC operating point
+    - navigation "Bias mode" [ref=f32e6]:
+      - link "Voltage Divider" [ref=f32e7] [cursor=pointer]:
+        - /url: /?mode=divider
+      - link "Fixed Bias" [ref=f32e8] [cursor=pointer]:
+        - /url: /?mode=fixed
+      - link "Emitter Bias" [ref=f32e9] [cursor=pointer]:
+        - /url: /?mode=emitter
+    - generic [ref=f32e10]:
+      - generic [ref=f32e13]:
+        - heading "Emitter Bias Input" [level=2] [ref=f32e14]
+        - generic [ref=f32e15]:
+          - generic [ref=f32e16]:
+            - generic [ref=f32e17]: VCC (V)
+            - textbox "VCC (V)" [ref=f32e18]: "12"
+          - generic [ref=f32e19]:
+            - generic [ref=f32e20]: RB (Ω)
+            - textbox "RB (Ω)" [ref=f32e21]: "470000"
+          - generic [ref=f32e22]:
+            - generic [ref=f32e23]: RC (Ω)
+            - textbox "RC (Ω)" [ref=f32e24]: "2200"
+          - generic [ref=f32e25]:
+            - generic [ref=f32e26]: RE (Ω)
+            - textbox "RE (Ω)" [ref=f32e27]: "1000"
+          - generic [ref=f32e28]:
+            - generic [ref=f32e29]: β
+            - textbox "β" [ref=f32e30]: "150"
+          - generic [ref=f32e31]:
+            - generic [ref=f32e32]: VBE (V)
+            - textbox "VBE (V)" [ref=f32e33]: "0.7"
+          - button "Calculate DC Bias" [ref=f32e34] [cursor=pointer]
+      - generic [ref=f32e37]:
+        - heading "Circuit Diagram" [level=2] [ref=f32e38]
+        - img "Common-emitter amplifier with emitter bias from a single supply" [ref=f32e39]:
+          - generic [ref=f32e51]:
+            - generic [ref=f32e52]: VCC
+            - generic [ref=f32e53]: RB
+            - generic [ref=f32e54]: RC
+            - generic [ref=f32e55]: RE
+            - generic [ref=f32e56]: B
+            - generic [ref=f32e57]: C
+            - generic [ref=f32e58]: E
+            - generic [ref=f32e59]: GND
+      - generic [ref=f32e62]:
+        - heading "DC Bias Results" [level=2] [ref=f32e63]
+        - paragraph [ref=f32e64]:
+          - text: Enter parameters and press
+          - strong [ref=f32e65]: Calculate DC Bias
+          - text: .
+  - contentinfo [ref=f32e66]:
+    - generic [ref=f32e67]:
+      - generic [ref=f32e68]:
+        - strong [ref=f32e69]: "Week 3 Goal:"
+        - text: Analyze and verify the DC operating point of an emitter-biased common-emitter amplifier.
+      - link "GitHub Repository" [ref=f32e70] [cursor=pointer]:
+        - /url: https://github.com/jongpongkeaw-ai/Girlab
