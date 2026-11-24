@@ -66,20 +66,20 @@
     <line x1="352" y1="138" x2="352" y2="162"/>
     <line x1="362" y1="138" x2="362" y2="162"/>
   </g>
-  <g fill="#0f172a" font-family="ui-monospace, Consolas, monospace" font-size="12">
+  <g fill="#0f172a" font-family="ui-monospace, Consolas, monospace" font-size="12" class="sim-node-labels">
     <text x="154" y="55">VCC</text>
     <text x="122" y="98">R1</text>
-    <text x="122" y="213">R2</text>
+    <text x="164" y="213">R2</text>
     <text x="302" y="98">RC</text>
     <text x="302" y="282">RE</text>
     <text x="402" y="223">RL</text>
-    <text x="76" y="218">src</text>
-    <text x="126" y="204">base</text>
-    <text x="196" y="168">collector</text>
-    <text x="248" y="248">emitter</text>
-    <text x="364" y="136">out</text>
-    <text x="72" y="210">Cin</text>
-    <text x="344" y="132">Cout</text>
+    <text x="28" y="244">src</text>
+    <text x="112" y="142">base</text>
+    <text x="244" y="164">collector</text>
+    <text x="244" y="258">emitter</text>
+    <text x="372" y="146">out</text>
+    <text x="96" y="200">Cin</text>
+    <text x="334" y="122">Cout</text>
   </g>
   <text x="215" y="344" fill="#9a3412" font-family="system-ui, sans-serif" font-size="12">No bypass capacitor across RE</text>
 </svg>

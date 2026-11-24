@@ -209,7 +209,8 @@ SIM_FIELD_META = {
 }
 
 SIM_GROUPS = (
-    ("Bias network &amp; load", ("vcc", "r1", "r2", "rc", "re", "rl")),
+    ("Supply &amp; divider", ("vcc", "r1", "r2")),
+    ("Collector, emitter &amp; load", ("rc", "re", "rl")),
     ("Coupling capacitors", ("cin", "cout")),
     ("Input source", ("amplitude_v", "frequency_hz")),
     ("Analytical reference assumptions", ("beta", "vbe")),

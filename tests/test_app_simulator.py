@@ -51,6 +51,7 @@ def test_missing_engine_clears_plots(client, monkeypatch):
     monkeypatch.setenv("NGSPICE_EXECUTABLE", "definitely-not-ngspice.exe")
     body = client.post("/simulator", data=dict(BASE, mode="ac")).get_data(as_text=True)
     assert "Error · engine" in body
+    assert "ngspice executable not found" in body
     assert "simulation-plot" not in body
     assert "Success · real ngspice run" not in body
 

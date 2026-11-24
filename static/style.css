@@ -154,6 +154,20 @@ body {
   color: #334155;
   font-size: 0.72rem;
   padding: 0.25rem 0.6rem;
+  white-space: normal;
+}
+
+.sim-hint {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-top: 0.4rem;
+}
+
+.sim-node-labels text {
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-linejoin: round;
+  stroke-width: 3px;
 }
 
 .sim-status-ready { background: #e2e8f0; color: #334155; }
@@ -206,7 +220,7 @@ body {
 .simulation-plot {
   display: block;
   height: auto;
-  min-width: 620px;
+  min-width: 640px;
   width: 100%;
 }
 
@@ -218,8 +232,18 @@ body {
 .sim-legend-gain, .sim-legend-vin { fill: #0d3b66; }
 .sim-legend-phase, .sim-legend-vout { fill: #c2410c; }
 .sim-note { fill: #64748b; }
-.sim-trace-gain, .sim-trace-vin { fill: none; stroke: #0d3b66; stroke-width: 2; }
-.sim-trace-phase, .sim-trace-vout { fill: none; stroke: #c2410c; stroke-width: 2; }
+.sim-swatch { stroke-width: 3; }
+.sim-swatch-gain, .sim-swatch-vin { stroke: #0d3b66; }
+.sim-swatch-phase, .sim-swatch-vout { stroke: #c2410c; }
+.sim-trace-gain, .sim-trace-vin { fill: none; stroke: #0d3b66; stroke-width: 2.2; }
+.sim-trace-phase, .sim-trace-vout { fill: none; stroke: #c2410c; stroke-width: 2.2; }
+.sim-trace-phase { stroke-dasharray: 7 4; }
+.sim-reference { stroke: #94a3b8; stroke-width: 1; stroke-dasharray: 3 4; }
+.sim-zero { stroke: #cbd5e1; stroke-width: 1; stroke-dasharray: 2 3; }
+
+button[type="submit"]:disabled {
+  opacity: 0.75;
+}
 
 .sim-analytical .card-header { background: #fffbeb; }
 .sim-evidence pre {
@@ -239,5 +263,12 @@ body {
   .sim-page h1 { font-size: 1.4rem; }
   .sim-chip { font-size: 0.68rem; }
   .sim-metric-value { font-size: 0.9rem; }
-  .simulation-plot { min-width: 560px; }
+  .simulation-plot { min-width: 600px; }
+  .sim-plot-wrap::after {
+    color: var(--muted);
+    content: "Scroll horizontally to inspect the plot.";
+    display: block;
+    font-size: 0.72rem;
+    padding-top: 0.35rem;
+  }
 }

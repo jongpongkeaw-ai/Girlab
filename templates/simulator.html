@@ -23,7 +23,8 @@
       <div class="card h-100">
         <div class="card-header fw-semibold">Circuit &amp; parameters</div>
         <div class="card-body">
-          <form method="post" action="{{ url_for('simulator_run') }}">
+          <form method="post" action="{{ url_for('simulator_run') }}"
+                onsubmit="const b=this.querySelector('button[type=submit]');if(b){b.disabled=true;b.textContent='Running ngspice…';}">
             <div class="mb-3">
               <label for="sim-mode" class="form-label fw-semibold">Analysis mode</label>
               <select class="form-select" id="sim-mode" name="mode">
@@ -39,7 +40,7 @@
               <legend class="sim-legend-title">{{ title|safe }}</legend>
               <div class="row g-2">
                 {% for field in fields %}
-                <div class="col-6">
+                <div class="col-12 col-sm-6">
                   <label class="form-label sim-input-label" for="f-{{ field }}">{{ sim_field_meta[field][0] }}</label>
                   <div class="input-group input-group-sm">
                     <input class="form-control{% if errors[field] %} is-invalid{% endif %}"
@@ -54,6 +55,13 @@
                 </div>
                 {% endfor %}
               </div>
+              {% if 'Coupling' in title %}
+              <p class="sim-hint mb-0">Enter farads: <code>10e-6</code> = 10 µF.</p>
+              {% elif 'Input source' in title %}
+              <p class="sim-hint mb-0">Peak volts; frequency 10 Hz – 1 MHz.</p>
+              {% elif 'Analytical' in title %}
+              <p class="sim-hint mb-0">These two fields do not change the SPICE model.</p>
+              {% endif %}
             </fieldset>
             {% endfor %}
 
@@ -66,7 +74,7 @@
     <section class="col-lg-8" id="sim-results-panel" aria-label="Simulation results and provenance">
       <div class="card mb-3">
         <div class="card-body">
-          <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+          <div class="d-flex flex-wrap gap-2 align-items-center mb-2" role="status" aria-live="polite">
             {% if errors %}
               <span class="badge sim-status-error">Error · validation</span>
             {% elif sim and sim.status == 'success' %}
@@ -83,12 +91,17 @@
           <div class="alert alert-danger sim-alert" role="alert">
             <strong>Error</strong> — fix the highlighted inputs. No simulation was run and no plots are shown.
           </div>
+          {% elif sim and sim.status == 'error' %}
+          <div class="alert alert-danger sim-alert" role="alert">
+            <strong>Error</strong> — {{ sim.error }}
+            {% if not engine_available %}
+            <br><span class="sim-hint">Set <code>NGSPICE_EXECUTABLE</code> or add <code>ngspice</code> to PATH, then restart the server.</span>
+            {% endif %}
+          </div>
           {% elif not engine_available %}
           <div class="alert alert-warning sim-alert" role="alert">
             ngspice was not found. Set <code>NGSPICE_EXECUTABLE</code> or add <code>ngspice</code> to PATH, then restart the server.
           </div>
-          {% elif sim and sim.status == 'error' %}
-          <div class="alert alert-danger sim-alert" role="alert"><strong>Error</strong> — {{ sim.error }}</div>
           {% else %}
           <p class="text-muted small mb-0">Choose an analysis mode, adjust the circuit values, then run. Results below are produced by an external ngspice process, not by the analytical Lab 3 calculator.</p>
           {% endif %}
