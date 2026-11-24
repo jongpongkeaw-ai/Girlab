@@ -66,4 +66,63 @@ Emitter Bias: `VCC=12 V, RB=470000 Ω, RC=2200 Ω, RE=1000 Ω, β=150, VBE=0.7 V
 
 ### ขอบเขต
 
-ไม่มี AC analysis, transient, กราฟ, ตัวแก้ไขวงจร หรือ FET
+เครื่องคำนวณ DC ด้านบนเป็น approximation ด้วยค่าประมาณ β / VBE ที่ผู้ใช้กำหนด
+ไม่มี AC analysis, transient, กราฟ, ตัวแก้ไขวงจร หรือ FET — ดูส่วน Lab 4 ด้านล่างสำหรับการจำลองด้วย ngspice
+
+## Lab 4 · BJT Amplifier Simulator v1 (ngspice)
+
+เพิ่มเข้าไปใน Flask app เดิมโดย **ไม่เปลี่ยน** routes `/`, ฟอร์ม Lab 3 หรือ `bjt.py`
+(`dc_bias.py` ไม่มีอยู่ใน repository นี้; module วิเคราะห์เดิมคือ `bjt.py`)
+
+### สิ่งที่จำลอง
+
+หนึ่งวงจร CE voltage-divider อ้างอิง (ไม่มี bypass capacitor คร่อม RE):
+
+| Parameter | Value |
+|---|---|
+| VCC | 12 V |
+| R1 / R2 | 100 kΩ / 22 kΩ |
+| RC / RE | 2.2 kΩ / 1 kΩ |
+| RL | 10 kΩ |
+| Cin / Cout | 10 µF / 10 µF |
+| Vin | SIN 10 mV peak @ 1 kHz |
+
+ค่าในฟอร์มทั้งหมดส่งเข้า netlist ได้ (ยกเว้น β / VBE ที่เป็นสมมติฐานของการคำนวณเชิงวิเคราะห์เท่านั้น)
+
+### ติดตั้ง ngspice
+
+ใช้ ngspice **47** (Windows 64-bit: `ngspice-47_64.7z` จาก
+<https://sourceforge.net/projects/ngspice/files/ng-spice-rework/47/>)
+แตก zip แล้วตั้ง executable ด้วย:
+
+```powershell
+$env:NGSPICE_EXECUTABLE = 'C:\path\to\ngspice47\Spice64\bin\ngspice.exe'
+python -m flask --app app run
+```
+
+หรือเพิ่มโฟลเดอร์ `bin` ลงใน `PATH` แทนได้ ตรวจสอบว่า engine ใช้ได้ด้วยการรัน batch smoke test
+(e.g. `ngspice.exe -b -o run.log circuit.cir`) — บน Windows `-v` อาจค้างในโหมดโต้ตอบ
+
+**BJT model:** `.model QGEN NPN` — ngspice generic built-in default parameters.
+โมเดลนี้เป็น **generic, NOT instructor-verified** ไม่มีการอ้างค่า device-specific และผล SPICE
+จะไม่ตรงกับ β / VBE แบบ hand calculation เสมอไป
+
+### รันและใช้งาน
+
+```powershell
+.venv\Scripts\python -m pytest -q
+.venv\Scripts\python -m flask --app app run
+```
+
+เปิด <http://127.0.0.1:5000/> สำหรับ Lab 3 และ <http://127.0.0.1:5000/simulator> สำหรับ Lab 4
+
+- **DC · `.op`** — VB, VE, VC, VCE, IC (V / A), circuit state, model, engine status, netlist และ log excerpt
+- **AC · `.ac`** — gain |Vout/Vin| (dB และ V/V), phase (deg), frequency (Hz) และ −3 dB cutoff
+  (จะแสดง `not determined in sweep range` ถ้าไม่มีจุดตัดในช่วง sweep)
+- **Transient · `.tran`** — time (s), Vin (V), Vout (V), peak amplitudes และ phase inversion
+
+Vin อ้างอิงที่ node `src`, Vout ที่ node `out` (คร่อม RL หลัง Cout) ผลทั้งหมดมาจาก ngspice จริง
+ผ่าน `subprocess.run([...], timeout=...)` ใน temp directory แยกต่อครั้ง ไม่มี mock data หรือกราฟสำเร็จรูป
+
+ข้อมูลผิด, engine หาย, timeout หรือ solver fail → แสดง error state จริงและ **ไม่มีกราฟ/ผลลัพธ์เก่า**
+รายละเอียดการตรวจสอบ B1–B8 ดูที่ `docs/validation.md`
