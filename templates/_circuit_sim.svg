@@ -1,0 +1,85 @@
+<svg viewBox="0 0 430 350" role="img" aria-label="Common-emitter voltage-divider amplifier with coupling capacitors and no bypass capacitor" class="circuit-svg sim-circuit-svg">
+  <g fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round">
+    <!-- VCC rail -->
+    <line x1="150" y1="40" x2="290" y2="40"/>
+    <!-- R1 branch -->
+    <line x1="150" y1="40" x2="150" y2="65"/>
+    <line x1="150" y1="120" x2="150" y2="150"/>
+    <!-- R2 branch -->
+    <line x1="150" y1="150" x2="150" y2="180"/>
+    <line x1="150" y1="235" x2="150" y2="300"/>
+    <!-- base node to transistor -->
+    <line x1="150" y1="150" x2="215" y2="150"/>
+    <line x1="215" y1="150" x2="215" y2="186"/>
+    <!-- RC branch -->
+    <line x1="290" y1="40" x2="290" y2="65"/>
+    <line x1="290" y1="120" x2="290" y2="150"/>
+    <line x1="290" y1="150" x2="240" y2="176"/>
+    <!-- emitter to RE -->
+    <line x1="240" y1="232" x2="290" y2="240"/>
+    <line x1="290" y1="240" x2="290" y2="250"/>
+    <line x1="290" y1="305" x2="290" y2="320"/>
+    <!-- input source and Cin -->
+    <line x1="60" y1="222" x2="108" y2="222"/>
+    <line x1="118" y1="222" x2="150" y2="222"/>
+    <line x1="150" y1="222" x2="150" y2="150"/>
+    <line x1="60" y1="272" x2="60" y2="300"/>
+    <!-- output coupling and RL -->
+    <line x1="290" y1="150" x2="352" y2="150"/>
+    <line x1="362" y1="150" x2="390" y2="150"/>
+    <line x1="390" y1="150" x2="390" y2="190"/>
+    <line x1="390" y1="245" x2="390" y2="300"/>
+    <!-- grounds -->
+    <line x1="132" y1="300" x2="168" y2="300"/>
+    <line x1="139" y1="306" x2="161" y2="306"/>
+    <line x1="146" y1="312" x2="154" y2="312"/>
+    <line x1="42" y1="300" x2="78" y2="300"/>
+    <line x1="49" y1="306" x2="71" y2="306"/>
+    <line x1="56" y1="312" x2="64" y2="312"/>
+    <line x1="272" y1="320" x2="308" y2="320"/>
+    <line x1="279" y1="326" x2="301" y2="326"/>
+    <line x1="286" y1="332" x2="294" y2="332"/>
+    <line x1="372" y1="300" x2="408" y2="300"/>
+    <line x1="379" y1="306" x2="401" y2="306"/>
+    <line x1="386" y1="312" x2="394" y2="312"/>
+    <!-- transistor -->
+    <circle cx="230" cy="205" r="34" fill="#ffffff"/>
+    <line x1="215" y1="186" x2="215" y2="224" stroke-width="3"/>
+    <line x1="215" y1="194" x2="242" y2="176"/>
+    <line x1="215" y1="216" x2="242" y2="232"/>
+    <!-- NPN emitter arrow (points out of base) -->
+    <path d="M 236 227 L 246 236 L 234 238 Z" fill="#334155" stroke="none"/>
+    <!-- signal source circle -->
+    <circle cx="60" cy="247" r="25" fill="#ffffff"/>
+    <path d="M 47 247 q 6.5 -12 13 0 q 6.5 12 13 0" fill="none" stroke="#0d3b66" stroke-width="2"/>
+  </g>
+  <g fill="#ffffff" stroke="#334155" stroke-width="2">
+    <rect x="142" y="65" width="16" height="55" rx="2"/>
+    <rect x="142" y="180" width="16" height="55" rx="2"/>
+    <rect x="282" y="65" width="16" height="55" rx="2"/>
+    <rect x="282" y="250" width="16" height="55" rx="2"/>
+    <rect x="382" y="190" width="16" height="55" rx="2"/>
+  </g>
+  <g fill="none" stroke="#0d3b66" stroke-width="3">
+    <line x1="108" y1="210" x2="108" y2="234"/>
+    <line x1="118" y1="210" x2="118" y2="234"/>
+    <line x1="352" y1="138" x2="352" y2="162"/>
+    <line x1="362" y1="138" x2="362" y2="162"/>
+  </g>
+  <g fill="#0f172a" font-family="ui-monospace, Consolas, monospace" font-size="12">
+    <text x="154" y="55">VCC</text>
+    <text x="122" y="98">R1</text>
+    <text x="122" y="213">R2</text>
+    <text x="302" y="98">RC</text>
+    <text x="302" y="282">RE</text>
+    <text x="402" y="223">RL</text>
+    <text x="76" y="218">src</text>
+    <text x="126" y="204">base</text>
+    <text x="196" y="168">collector</text>
+    <text x="248" y="248">emitter</text>
+    <text x="364" y="136">out</text>
+    <text x="72" y="210">Cin</text>
+    <text x="344" y="132">Cout</text>
+  </g>
+  <text x="215" y="344" fill="#9a3412" font-family="system-ui, sans-serif" font-size="12">No bypass capacitor across RE</text>
+</svg>

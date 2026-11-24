@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ENG29 2121 · BJT CE Amplifier Simulator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="container-xxl py-4 sim-page">
+  <header class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+    <div>
+      <p class="sim-kicker mb-1">ENG29 2121 · LAB 04</p>
+      <h1 class="h3 mb-1">BJT CE Amplifier Simulator v1</h1>
+      <p class="text-muted mb-0">Real ngspice DC / AC / transient results for one reference common-emitter circuit.</p>
+    </div>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('index') }}">← Lab 3 bias calculator</a>
+  </header>
+
+  <div class="row g-4">
+    <section class="col-lg-4" id="sim-input-panel" aria-label="Circuit and analysis inputs">
+      <div class="card h-100">
+        <div class="card-header fw-semibold">Circuit &amp; parameters</div>
+        <div class="card-body">
+          <form method="post" action="{{ url_for('simulator_run') }}">
+            <div class="mb-3">
+              <label for="sim-mode" class="form-label fw-semibold">Analysis mode</label>
+              <select class="form-select" id="sim-mode" name="mode">
+                {% for mode_id in sim_modes %}
+                <option value="{{ mode_id }}"{% if mode_id == mode %} selected{% endif %}>{{ sim_mode_labels[mode_id] }}</option>
+                {% endfor %}
+              </select>
+              <div class="form-text">Every run is fresh: prior plots and values are cleared on error.</div>
+            </div>
+
+            {% for title, fields in sim_groups %}
+            <fieldset class="sim-fieldset">
+              <legend class="sim-legend-title">{{ title|safe }}</legend>
+              <div class="row g-2">
+                {% for field in fields %}
+                <div class="col-6">
+                  <label class="form-label sim-input-label" for="f-{{ field }}">{{ sim_field_meta[field][0] }}</label>
+                  <div class="input-group input-group-sm">
+                    <input class="form-control{% if errors[field] %} is-invalid{% endif %}"
+                           id="f-{{ field }}" name="{{ field }}" value="{{ values[field] }}" inputmode="decimal">
+                    {% if sim_field_meta[field][1] %}
+                    <span class="input-group-text">{{ sim_field_meta[field][1] }}</span>
+                    {% endif %}
+                  </div>
+                  {% if errors[field] %}
+                  <div class="invalid-feedback d-block error">{{ errors[field] }}</div>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+            </fieldset>
+            {% endfor %}
+
+            <button class="btn btn-primary w-100 mt-3" type="submit">Run simulation</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="col-lg-8" id="sim-results-panel" aria-label="Simulation results and provenance">
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+            {% if errors %}
+              <span class="badge sim-status-error">Error · validation</span>
+            {% elif sim and sim.status == 'success' %}
+              <span class="badge sim-status-success">Success · real ngspice run</span>
+            {% elif sim and sim.status == 'error' %}
+              <span class="badge sim-status-error">Error · engine</span>
+            {% else %}
+              <span class="badge sim-status-ready">Ready</span>
+            {% endif %}
+            <span class="sim-chip">Engine: {{ engine_label }}</span>
+            <span class="sim-chip">Model: {{ model_label }}</span>
+          </div>
+          {% if errors %}
+          <div class="alert alert-danger sim-alert" role="alert">
+            <strong>Error</strong> — fix the highlighted inputs. No simulation was run and no plots are shown.
+          </div>
+          {% elif not engine_available %}
+          <div class="alert alert-warning sim-alert" role="alert">
+            ngspice was not found. Set <code>NGSPICE_EXECUTABLE</code> or add <code>ngspice</code> to PATH, then restart the server.
+          </div>
+          {% elif sim and sim.status == 'error' %}
+          <div class="alert alert-danger sim-alert" role="alert"><strong>Error</strong> — {{ sim.error }}</div>
+          {% else %}
+          <p class="text-muted small mb-0">Choose an analysis mode, adjust the circuit values, then run. Results below are produced by an external ngspice process, not by the analytical Lab 3 calculator.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card mb-3" id="sim-circuit-card">
+        <div class="card-header fw-semibold">Reference CE circuit · no bypass capacitor</div>
+        <div class="card-body">
+          {% include '_circuit_sim.svg' %}
+          <p class="sim-note mb-0">Vin is applied at <code>src</code> through Cin; Vout is measured at <code>out</code> across RL. The generic SPICE model is fixed and is not affected by the analytical β / VBE fields.</p>
+        </div>
+      </div>
+
+      {% if sim and sim.status == 'success' and mode == 'dc' %}
+      <div class="card mb-3" id="simulation-results">
+        <div class="card-header fw-semibold">DC operating point · ngspice <code>.op</code></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">VB · base</span><span class="sim-metric-value">{{ sim.data.vb_v|voltage }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">VE · emitter</span><span class="sim-metric-value">{{ sim.data.ve_v|voltage }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">VC · collector</span><span class="sim-metric-value">{{ sim.data.vc_v|voltage }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">VCE</span><span class="sim-metric-value">{{ sim.data.vce_v|voltage }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">IC · via RC drop</span><span class="sim-metric-value">{{ sim.data.ic_a|current }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">Circuit state</span><span class="sim-metric-value sim-metric-state">
+              {% if sim.data.vce_v <= 0.2 %}Saturation{% elif sim.data.ic_a|abs < 0.000000001 %}Cutoff{% else %}Active{% endif %}
+            </span></div></div>
+          </div>
+          <p class="sim-note mb-0">IC is derived from the simulated collector node and the specified RC: IC = (VCC − VC) / RC. No device-specific parameters are claimed.</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if sim and sim.status == 'success' and mode == 'ac' %}
+      <div class="card mb-3" id="simulation-results">
+        <div class="card-header fw-semibold">AC response · ngspice <code>.ac</code></div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">−3 dB cutoff</span><span class="sim-metric-value">{{ sim.data.cutoff_hz }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">Sweep points</span><span class="sim-metric-value">{{ sim.data.frequency_hz|length }}</span></div></div>
+            <div class="col-12"><p class="sim-note mb-0">{{ sim.data.vin_reference }}. Vout: {{ sim.data.vout_node }}. Gain = |Vout / Vin|; Vin is the 1 V, 0° AC source in the netlist.</p></div>
+          </div>
+          <div class="sim-plot-wrap">{{ plot_ac|safe }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if sim and sim.status == 'success' and mode == 'tran' %}
+      <div class="card mb-3" id="simulation-results">
+        <div class="card-header fw-semibold">Transient waveforms · ngspice <code>.tran</code></div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">Vin peak</span><span class="sim-metric-value">{{ sim.data.vin_peak_v|voltage }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">Vout peak</span><span class="sim-metric-value">{{ sim.data.vout_peak_v|voltage }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">Phase inversion</span><span class="sim-metric-value">{{ 'Yes' if sim.data.inverted else 'No' }}</span></div></div>
+            <div class="col-12"><p class="sim-note mb-0">Vin: {{ sim.data.vin_reference }}. Vout: {{ sim.data.vout_node }}. Vin and Vout use separate vertical scales so the small input is visible.</p></div>
+          </div>
+          <div class="sim-plot-wrap">{{ plot_tran|safe }}</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if analytical %}
+      <div class="card mb-3 sim-analytical" id="analytical-reference">
+        <div class="card-header fw-semibold">Analytical DC reference · <code>bjt.py</code> (NOT ngspice)</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">VB</span><span class="sim-metric-value">{{ analytical.vb_v|voltage }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">VE</span><span class="sim-metric-value">{{ analytical.ve_v|voltage }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">VCE</span><span class="sim-metric-value">{{ analytical.vce_v|voltage }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">IC</span><span class="sim-metric-value">{{ analytical.ic_a|current }}</span></div></div>
+            <div class="col-6 col-md-4"><div class="sim-metric"><span class="sim-metric-label">Region</span><span class="sim-metric-value">{{ analytical.region|capitalize }}</span></div></div>
+          </div>
+          <p class="sim-note mb-0">Thevenin hand model with fixed assumptions β = {{ values.beta }}, VBE = {{ values.vbe }} V. It does not change the SPICE model, so differences from the ngspice DC result are expected.</p>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if sim %}
+      <div class="card mb-3 sim-evidence">
+        <div class="card-header fw-semibold">Run evidence</div>
+        <div class="card-body">
+          <details class="sim-details"{% if sim.status == 'error' %} open{% endif %}>
+            <summary>Netlist sent to ngspice</summary>
+            <pre>{{ sim.netlist }}</pre>
+          </details>
+          <details class="sim-details">
+            <summary>ngspice log excerpt</summary>
+            <pre>{{ sim_log_excerpt if sim_log_excerpt else 'No log output.' }}</pre>
+          </details>
+        </div>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+
+  <footer class="sim-footer mt-4">
+    <p class="mb-0">Lab 4 · BJT Amplifier Simulator v1 · ngspice results are engine-generated; the analytical reference is the preserved Lab 3 model.</p>
+  </footer>
+</main>
+</body>
+</html>

@@ -1,6 +1,17 @@
 from flask import Flask, render_template, request
 
 from bjt import MODES, analyze_mode, parse_mode_input
+from bjt import analyze as analyze_bias
+from bjt import parse_bias_input
+from spice_engine import (
+    MODEL_LINE,
+    SIM_FIELDS,
+    SIMULATION_MODES,
+    find_executable,
+    parse_sim_input,
+    run_simulation,
+)
+from simulator_plots import bode_svg, wave_svg
 
 app = Flask(__name__)
 
@@ -163,3 +174,122 @@ def calculate():
     if errors:
         return _render(mode, values, errors, None)
     return _render(mode, values, {}, analyze_mode(mode, data))
+
+
+# --- Lab 4: ngspice CE amplifier simulator (new section; Lab 3 above unchanged) ---
+
+SIM_DEFAULTS = {
+    "vcc": "12",
+    "r1": "100000",
+    "r2": "22000",
+    "rc": "2200",
+    "re": "1000",
+    "rl": "10000",
+    "cin": "10e-6",
+    "cout": "10e-6",
+    "amplitude_v": "0.01",
+    "frequency_hz": "1000",
+    "beta": "100",
+    "vbe": "0.70",
+}
+
+SIM_FIELD_META = {
+    "vcc": ("VCC", "V"),
+    "r1": ("R1", "Ω"),
+    "r2": ("R2", "Ω"),
+    "rc": ("RC", "Ω"),
+    "re": ("RE", "Ω"),
+    "rl": ("RL", "Ω"),
+    "cin": ("Cin", "F"),
+    "cout": ("Cout", "F"),
+    "amplitude_v": ("Source amplitude (peak)", "V"),
+    "frequency_hz": ("Source frequency", "Hz"),
+    "beta": ("β (analytical only)", ""),
+    "vbe": ("VBE (analytical only)", "V"),
+}
+
+SIM_GROUPS = (
+    ("Bias network &amp; load", ("vcc", "r1", "r2", "rc", "re", "rl")),
+    ("Coupling capacitors", ("cin", "cout")),
+    ("Input source", ("amplitude_v", "frequency_hz")),
+    ("Analytical reference assumptions", ("beta", "vbe")),
+)
+
+SIM_MODE_LABELS = {"dc": "DC · .op", "ac": "AC · .ac", "tran": "Transient · .tran"}
+MODEL_LABEL = MODEL_LINE + " — generic, NOT instructor-verified"
+ENGINE_LABEL = "ngspice · external batch process"
+
+
+def _sim_log_excerpt(sim) -> str:
+    if sim is None or not sim.log:
+        return ""
+    return "\n".join(sim.log.splitlines()[:14])
+
+
+def _render_simulator(
+    values: dict[str, str],
+    errors: dict[str, str] | None = None,
+    sim=None,
+    analytical=None,
+    mode: str = "dc",
+    plot_ac: str = "",
+    plot_tran: str = "",
+):
+    return render_template(
+        "simulator.html",
+        values=values,
+        errors=errors or {},
+        sim=sim,
+        analytical=analytical,
+        mode=mode,
+        sim_modes=SIMULATION_MODES,
+        sim_mode_labels=SIM_MODE_LABELS,
+        sim_field_meta=SIM_FIELD_META,
+        sim_groups=SIM_GROUPS,
+        model_label=MODEL_LABEL,
+        engine_label=ENGINE_LABEL,
+        engine_available=find_executable() is not None,
+        plot_ac=plot_ac,
+        plot_tran=plot_tran,
+        sim_log_excerpt=_sim_log_excerpt(sim),
+    )
+
+
+@app.get("/simulator")
+def simulator():
+    return _render_simulator(SIM_DEFAULTS)
+
+
+@app.post("/simulator")
+def simulator_run():
+    mode = request.form.get("mode", "dc")
+    if mode not in SIMULATION_MODES:
+        mode = "dc"
+    values = {field: request.form.get(field, "") for field in SIM_FIELDS}
+    data, errors = parse_sim_input(values)
+    if errors:
+        return _render_simulator(values, errors=errors, mode=mode)
+
+    sim = run_simulation(data, mode)
+
+    bias_data, bias_errors = parse_bias_input(
+        {field: values[field] for field in ("vcc", "r1", "r2", "rc", "re", "beta", "vbe")}
+    )
+    analytical = analyze_bias(bias_data) if bias_data and not bias_errors else None
+
+    plot_ac = ""
+    plot_tran = ""
+    if sim.status == "success":
+        if mode == "ac":
+            plot_ac = bode_svg(sim.data)
+        elif mode == "tran":
+            plot_tran = wave_svg(sim.data)
+
+    return _render_simulator(
+        values,
+        sim=sim,
+        analytical=analytical,
+        mode=mode,
+        plot_ac=plot_ac,
+        plot_tran=plot_tran,
+    )
