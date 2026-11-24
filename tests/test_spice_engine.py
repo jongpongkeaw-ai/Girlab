@@ -113,7 +113,7 @@ def test_parse_ac_columns_and_gain():
     assert result["frequency_hz"][0] == pytest.approx(10.0)
     assert result["gain_db"][0] == pytest.approx(4.726377)
     assert result["gain_v_per_v"][0] == pytest.approx(10 ** (4.726377 / 20))
-    assert result["phase_deg"][0] == pytest.approx(-2.90856)
+    assert result["phase_deg"][0] == pytest.approx(-2.90856 * 180 / 3.141592653589793)
 
 
 def test_table_skips_repeated_ngspice_page_headers():

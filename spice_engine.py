@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import tempfile
 from dataclasses import dataclass
-from math import isfinite
+from math import isfinite, pi
 from pathlib import Path
 from typing import Mapping
 
@@ -239,7 +239,8 @@ def parse_ac(log: str) -> dict[str, object]:
         raise SimError("AC sweep table is missing or empty in ngspice log")
     frequency = [row[1] for row in rows]
     gain_db = [row[2] for row in rows]
-    phase = [row[3] for row in rows]
+    # ngspice's vp() column is in radians; the UI and docs promise degrees.
+    phase = [row[3] * 180.0 / pi for row in rows]
     gain = [10 ** (value / 20) for value in gain_db]
     peak = max(gain_db)
     cutoff: str | float = "not determined in sweep range"
