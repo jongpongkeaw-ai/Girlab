@@ -164,9 +164,26 @@ def _table(log: str, header: tuple[str, ...]) -> list[list[float]]:
         if not all(token in columns for token in header):
             continue
         rows: list[list[float]] = []
-        for row in lines[index + 1 :]:
-            parts = row.split()
-            if parts and set(parts[0]) == {"-"}:
+        cursor = index + 1
+        while cursor < len(lines):
+            parts = lines[cursor].split()
+            if not parts:
+                # ngspice paginates: blank lines precede a repeated page header.
+                lookahead = cursor + 1
+                while lookahead < len(lines) and not lines[lookahead].strip():
+                    lookahead += 1
+                if lookahead < len(lines) and all(
+                    token in lines[lookahead].split() for token in header
+                ):
+                    cursor = lookahead
+                    continue
+                break
+            if set(parts[0]) == {"-"}:
+                cursor += 1
+                continue
+            if all(token in parts for token in header):
+                # ngspice repeats the print header every ~60 rows (pagination).
+                cursor += 1
                 continue
             if len(parts) < len(columns):
                 break
@@ -174,6 +191,7 @@ def _table(log: str, header: tuple[str, ...]) -> list[list[float]]:
                 rows.append([float(part) for part in parts[: len(columns)]])
             except ValueError:
                 break
+            cursor += 1
         if rows:
             return rows
     return []

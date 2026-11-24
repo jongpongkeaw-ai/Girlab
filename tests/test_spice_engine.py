@@ -94,12 +94,32 @@ def test_parse_dc_returns_volts_and_derived_ic():
     assert result["ic_a"] == pytest.approx((12.0 - 9.438841) / 2200.0)
 
 
+PAGED_AC_LOG = (
+    "Index   frequency       vdb(out)        vp(out)         \n"
+    "--------------------------------------------------------------------------------\n"
+    "0\t1.000000e+01\t4.726377e+00\t-2.90856e+00\t\n"
+    "1\t1.059254e+01\t4.739313e+00\t-2.92148e+00\t\n"
+    "\n"
+    "\n"
+    "Index   frequency       vdb(out)        vp(out)         \n"
+    "--------------------------------------------------------------------------------\n"
+    "2\t1.122018e+01\t4.750860e+00\t-2.93370e+00\t\n"
+    "3\t1.188502e+01\t4.761164e+00\t-2.94525e+00\t\n"
+)
+
+
 def test_parse_ac_columns_and_gain():
     result = parse_ac(AC_LOG)
     assert result["frequency_hz"][0] == pytest.approx(10.0)
     assert result["gain_db"][0] == pytest.approx(4.726377)
     assert result["gain_v_per_v"][0] == pytest.approx(10 ** (4.726377 / 20))
     assert result["phase_deg"][0] == pytest.approx(-2.90856)
+
+
+def test_table_skips_repeated_ngspice_page_headers():
+    result = parse_ac(PAGED_AC_LOG)
+    assert len(result["frequency_hz"]) == 4
+    assert result["frequency_hz"][-1] == pytest.approx(11.88502)
 
 
 def test_parse_tran_columns():
